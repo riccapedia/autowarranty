@@ -1,21 +1,26 @@
+// middleware.ts (at project root, or src/middleware.ts if you use /src)
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Mark these as public (no auth)
+// mark your public routes here
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
-  "/favicon(.*)",
 ]);
 
 export default clerkMiddleware((auth, req) => {
-  // Let public routes through
+  // allow public routes through
   if (isPublicRoute(req)) return;
 
-  // Everything else requires auth
-  auth().protect({ unauthorizedUrl: "/sign-in" });
+  // protect everything else
+  auth().protect();
 });
 
+// IMPORTANT: don't run middleware on static files like /favicon.ico, /_next, *.png, etc.
 export const config = {
-  // Run on everything except static files and /_next
-  matcher: ["/((?!_next|.*\\..*).*)"],
+  matcher: [
+    // Skip static files and _next
+    "/((?!.+\\.[\\w]+$|_next).*)",
+    // Always run for API routes
+    "/(api|trpc)(.*)",
+  ],
 };
